@@ -132,11 +132,15 @@ export default function ParkExperience({ mode, xrStore, onExit, autoEnterVR, onV
       if (e.key === "e" || e.key === "E") {
         if (sitting) { toggleSit(); return; }
         if (heldObject === "ball") return; // click to throw / F to drop
+        // Bench takes priority over other interactables when the player is
+        // literally standing at the bench — otherwise the ball can steal the
+        // sit affordance.
+        if (nearBench) { toggleSit(); return; }
         const near = nearestInteractableRef.current;
         if (near === "lamp") { toggleDayNight(); return; }
         if (near === "radio") { toggleRadio(); return; }
         if (near === "ball") { pickupBall(); return; }
-        if (near === "bench" || nearBench) { toggleSit(); return; }
+        if (near === "bench") { toggleSit(); return; }
       }
       if (e.key === "f" || e.key === "F") {
         if (heldObject === "ball" && ballRef.current) {

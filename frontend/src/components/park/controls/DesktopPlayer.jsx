@@ -121,7 +121,8 @@ export default function DesktopPlayer({
     const dz = camera.position.z - bench.position.z;
     onNearBench?.(Math.sqrt(dx * dx + dz * dz) < 3.2);
 
-    // Determine nearest interactable within 5.0m
+    // Determine nearest interactable within 5.0m. Bench gets a small distance
+    // bias when standing at it, so it wins over a ball lying on the way.
     if (interactPositions && onProximityHint) {
       let best = null;
       let bestDist = 5.0;
@@ -129,7 +130,8 @@ export default function DesktopPlayer({
         if (heldRef.current === "ball" && type === "ball") continue;
         const ddx = camera.position.x - pos.x;
         const ddz = camera.position.z - pos.z;
-        const dist = Math.sqrt(ddx * ddx + ddz * ddz);
+        let dist = Math.sqrt(ddx * ddx + ddz * ddz);
+        if (type === "bench") dist -= 1.2; // give bench a preference bias
         if (dist < bestDist) {
           bestDist = dist;
           best = type;

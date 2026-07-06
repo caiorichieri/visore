@@ -16,7 +16,7 @@ export default function Ground() {
       GRASS_URL,
       (tex) => {
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-        tex.repeat.set(24, 24);
+        tex.repeat.set(12, 12);
         tex.colorSpace = THREE.SRGBColorSpace;
         tex.anisotropy = 8;
         setGrass(tex);
@@ -56,7 +56,7 @@ export default function Ground() {
       {grass ? (
         <meshStandardMaterial
           map={grass}
-          color="#c8ddb0"
+          color="#ffffff"
           roughness={0.95}
           metalness={0}
         />
