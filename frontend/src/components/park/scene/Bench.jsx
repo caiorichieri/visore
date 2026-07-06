@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { useWoodTexture } from "@/components/park/scene/textures";
 
 // A wooden park bench built from primitive geometry, oriented facing +Z.
 // The user "sits" when the group's userData.onSelect is triggered
@@ -12,6 +13,7 @@ export default function Bench({
   highlighted = false,
 }) {
   const ref = useRef();
+  const woodTex = useWoodTexture([2, 0.4]);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -51,8 +53,14 @@ export default function Bench({
       {[-0.2, 0, 0.2].map((zOff, i) => (
         <mesh key={`seat-${i}`} position={[0, seatHeight, zOff * seatDepth]} castShadow receiveShadow>
           <boxGeometry args={[seatWidth, 0.05, 0.14]} />
-          <meshStandardMaterial color={i === 1 ? woodLight : woodDark} roughness={0.7} metalness={0.05}
-            emissive={emissive} emissiveIntensity={emissiveIntensity} />
+          <meshStandardMaterial
+            map={woodTex}
+            color={woodTex ? "#c69166" : (i === 1 ? "#8b5a30" : "#5b3a1e")}
+            roughness={0.7}
+            metalness={0.05}
+            emissive={emissive}
+            emissiveIntensity={emissiveIntensity}
+          />
         </mesh>
       ))}
       {/* Backrest slats */}
@@ -60,15 +68,21 @@ export default function Bench({
         <mesh key={`back-${i}`} position={[0, seatHeight + 0.15 + yOff, -seatDepth / 2 - 0.02]}
           rotation={[-0.12, 0, 0]} castShadow receiveShadow>
           <boxGeometry args={[seatWidth, 0.09, 0.05]} />
-          <meshStandardMaterial color={woodLight} roughness={0.72} metalness={0.05}
-            emissive={emissive} emissiveIntensity={emissiveIntensity} />
+          <meshStandardMaterial
+            map={woodTex}
+            color={woodTex ? "#b3835a" : woodLight}
+            roughness={0.72}
+            metalness={0.05}
+            emissive={emissive}
+            emissiveIntensity={emissiveIntensity}
+          />
         </mesh>
       ))}
       {/* Armrests */}
       {[-1, 1].map((side) => (
         <mesh key={`arm-${side}`} position={[side * (seatWidth / 2 - 0.02), seatHeight + 0.25, 0]} castShadow>
           <boxGeometry args={[0.06, 0.5, seatDepth]} />
-          <meshStandardMaterial color={woodDark} roughness={0.75} />
+          <meshStandardMaterial map={woodTex} color={woodTex ? "#8f6238" : woodDark} roughness={0.75} />
         </mesh>
       ))}
       {/* Legs */}

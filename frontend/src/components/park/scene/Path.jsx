@@ -1,11 +1,12 @@
 import { useMemo } from "react";
 import * as THREE from "three";
+import { useDirtTexture } from "@/components/park/scene/textures";
 
-// A subtle beige/gravel path meandering from spawn to the bench area.
+// A meandering dirt-and-gravel path from spawn to the bench and beyond.
 export default function Path() {
+  const dirt = useDirtTexture([14, 1.5]);
+
   const geometry = useMemo(() => {
-    // Build path as a stretched, curved ring segment using a TubeGeometry style
-    // but simpler: a series of flat quads following a curve.
     const curve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(0, 0.01, 8),
       new THREE.Vector3(-0.4, 0.01, 4),
@@ -16,7 +17,6 @@ export default function Path() {
       new THREE.Vector3(-1.2, 0.01, -18),
     ]);
     const geo = new THREE.TubeGeometry(curve, 80, 0.7, 8, false);
-    // Flatten the tube: scale Y by tiny amount to make it a flat ribbon
     geo.scale(1, 0.04, 1);
     geo.translate(0, 0.01, 0);
     return geo;
@@ -24,7 +24,12 @@ export default function Path() {
 
   return (
     <mesh geometry={geometry} receiveShadow>
-      <meshStandardMaterial color="#c9b184" roughness={1} metalness={0} />
+      <meshStandardMaterial
+        map={dirt}
+        color={dirt ? "#d6bf98" : "#c9b184"}
+        roughness={1}
+        metalness={0}
+      />
     </mesh>
   );
 }

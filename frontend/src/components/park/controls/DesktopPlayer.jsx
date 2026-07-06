@@ -73,12 +73,30 @@ export default function DesktopPlayer({
     const d = Math.min(delta, 0.05);
     const speed = keys.current["ShiftLeft"] || keys.current["ShiftRight"] ? 9 : 5.2;
     const k = keys.current;
+
+    // --- Arrow keys → camera rotation (yaw + pitch), so the player can
+    // spin 360° with the keyboard alone even without a mouse. ---
+    let yawDelta = 0;
+    let pitchDelta = 0;
+    if (k["ArrowLeft"]) yawDelta += 1;
+    if (k["ArrowRight"]) yawDelta -= 1;
+    if (k["ArrowUp"]) pitchDelta += 1;
+    if (k["ArrowDown"]) pitchDelta -= 1;
+    if (yawDelta !== 0 || pitchDelta !== 0) {
+      const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, "YXZ");
+      euler.y += yawDelta * 1.9 * d;
+      const maxPitch = Math.PI / 2 - 0.05;
+      euler.x = Math.max(-maxPitch, Math.min(maxPitch, euler.x + pitchDelta * 1.4 * d));
+      euler.z = 0;
+      camera.quaternion.setFromEuler(euler);
+    }
+
     let moveZ = 0;
     let moveX = 0;
-    if (k["KeyW"] || k["ArrowUp"]) moveZ += 1;
-    if (k["KeyS"] || k["ArrowDown"]) moveZ -= 1;
-    if (k["KeyA"] || k["ArrowLeft"]) moveX -= 1;
-    if (k["KeyD"] || k["ArrowRight"]) moveX += 1;
+    if (k["KeyW"]) moveZ += 1;
+    if (k["KeyS"]) moveZ -= 1;
+    if (k["KeyA"]) moveX -= 1;
+    if (k["KeyD"]) moveX += 1;
 
     camera.getWorldDirection(dir.current);
     dir.current.y = 0;

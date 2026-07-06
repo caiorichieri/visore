@@ -1,6 +1,7 @@
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
+import { useBarkTexture } from "@/components/park/scene/textures";
 
 // Procedural mid-poly trees: tapered trunk + irregular foliage cluster.
 // Placed with a seeded deterministic layout so scene stays consistent.
@@ -14,6 +15,7 @@ function seededRandom(seed) {
 
 export default function Trees() {
   const foliageRef = useRef();
+  const bark = useBarkTexture([1, 2]);
 
   const trees = useMemo(() => {
     const rng = seededRandom(42);
@@ -66,7 +68,7 @@ export default function Trees() {
             <cylinderGeometry
               args={[0.12 * tr.scale, 0.22 * tr.scale, 2.8 * tr.scale, 8]}
             />
-            <meshStandardMaterial color="#5a3a24" roughness={0.95} />
+            <meshStandardMaterial map={bark} color={bark ? "#8a6b48" : "#5a3a24"} roughness={0.95} />
           </mesh>
         ))}
       </group>

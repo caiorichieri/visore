@@ -1,0 +1,65 @@
+{
+  "summary": "Iteration 3 verified the PRIMARY bug fix (keyboard 360° rotation) and PBR textures. RESULT: 6/7 test areas PASS. Arrow key rotation FIX CONFIRMED — ArrowRight/ArrowLeft rotate yaw, ArrowUp/ArrowDown rotate pitch; screenshots show dramatic camera-composition change (byte-diff ratio ~0.95 between before/after ArrowRight 2s hold). Arrow keys no longer move the player, only rotate. WASD still moves. All 4 Poly Haven texture URLs return 200 (forrest_ground, aerial_beach dirt, wood_planks_grey, bark_brown_02) — no CORS/pageerrors. Bench slats visually show wood grain, path visibly shows dirt tint, ground has grass color variation. Welcome screen, desktop entry, VR fallback banner all pass. Zero uncaught pageerrors on any flow. HUD text correctly mentions 'frecce per ruotare'. HOWEVER: one regression discovered — sit-on-bench flow is BROKEN because the ball's proximity beats the bench, so KeyE picks up the ball instead of sitting even when the sit-prompt is displayed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Sit-on-bench (regression from ball feature)",
+        "issue": "Walking straight forward with KeyW toward the bench places the player within ~5m of BOTH the ball and the bench. DesktopPlayer's proximity loop picks the smallest-distance interactable (ball wins because it's on the path between spawn and bench). HUD still shows sit-prompt (based on nearBench-only proximity), but pressing KeyE fires pickupBall because ParkExperience.jsx line 138 checks 'if (near === ball)' BEFORE the bench branch. Result: user cannot sit on the bench via the documented E-press flow; they end up holding the red ball. Even after dropping the ball with F it lands at the player's feet and continues to win the nearest-interactable check.",
+        "affected_selectors": ["[data-testid=sit-prompt]", "[data-testid=pickup-ball-prompt]", "[data-testid=throw-ball-prompt]", "[data-testid=stand-prompt]"]
+      }
+    ],
+    "design_issues": [
+      {
+        "screen": "Grass ground",
+        "issues": ["Poly Haven forrest_ground_01 texture loads (HTTP 200) and is applied on the CircleGeometry, but with repeat=24x24 and the very light multiplicative color #c8ddb0 the pattern is barely visible from eye height — ground reads as near-uniform green in screenshots. Consider lower repeat (e.g., 12x12) or a whiter color multiplier so the map isn't washed out."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_3.json",
+    "/app/test_reports/00_initial_scene.png",
+    "/app/test_reports/01_before_arrow_right.png",
+    "/app/test_reports/02_after_arrow_right.png",
+    "/app/test_reports/03_after_arrow_left.png",
+    "/app/test_reports/04_after_arrow_up.png",
+    "/app/test_reports/05_after_arrow_down.png",
+    "/app/test_reports/06_before_W.png",
+    "/app/test_reports/07_after_W.png",
+    "/app/test_reports/12_vr_banner_check.png",
+    "/app/test_reports/13_bench_approach.png"
+  ],
+  "action_items": [
+    "FIX SIT REGRESSION: In DesktopPlayer.jsx proximity loop and/or ParkExperience.jsx onKey handler, prioritise 'bench' over 'ball' when both are within range. Simplest fix: in the DesktopPlayer proximity loop, apply a preference bias so bench wins when distance to bench < ~2.0m even if ball is closer. OR in ParkExperience.jsx line ~132-140, reorder to check nearBench (proximity boolean) before the nearestInteractableRef branches so E defaults to sit when standing next to the bench.",
+    "OPTIONAL POLISH: Improve visible grass pattern on the ground (see design_issues) — the PBR request succeeds but the ground looks near-uniform because of high repeat + light color multiplier."
+  ],
+  "critical_code_review_comments": [
+    "DesktopPlayer.jsx L85-92: Arrow-key rotation implementation is correct — Euler YXZ ordering, clamped pitch to ±(pi/2 - 0.05), no roll accumulation. Verified 360° yaw works.",
+    "DesktopPlayer.jsx L128-136 (proximity loop): No priority weighting between interactables. 'ball' can steal E-interactions from 'bench' when both are near — root cause of sit regression above.",
+    "ParkExperience.jsx L91-96 onInteract & L129-146 onKey: Handling order is (lamp, radio, ball, bench, nearBench-fallback). Ball is checked BEFORE bench, which combined with the proximity-driven nearestInteractableRef effectively blocks sitting whenever the ball is within 5m.",
+    "textures.js: Loaders correctly set SRGBColorSpace, RepeatWrapping, anisotropy=8. onError falls back to setTex(null) which lets meshes render with fallback colors — good graceful degradation.",
+    "Ground.jsx: meshStandardMaterial has both map={grass} and color='#c8ddb0'. In three.js the color multiplies the map, so a very light color desaturates the visible grass pattern. Consider color='#ffffff' or drop the tint.",
+    "HUD.jsx L27-35: 'frecce per ruotare' hint added correctly. Consider adding an explicit arrow-key glyph next to WASD keys for visual parity."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "86% (6/7 features passing — sit-on-bench regression only)"},
+  "test_credentials": "N/A",
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Verified data-testids on this build: welcome-screen, enter-vr-button, enter-desktop-button, park-experience, click-to-play-prompt, desktop-hud-controls, sit-prompt, stand-prompt, pickup-ball-prompt, throw-ball-prompt, vr-error-banner, exit-park-button. Screenshots 01/02 prove keyboard yaw rotation (95% pixel diff after 2s ArrowRight). To reproduce the sit regression: enter desktop, click canvas at (200,100) to lock pointer, hold KeyW for 2.5s — you will end up near BOTH bench and ball; sit-prompt visible; press KeyE → the red ball attaches to camera (throw-ball-prompt shows), sit did NOT happen. To retest sit-on-bench after fix, ensure that when nearBench + ball also nearby, KeyE prefers bench.",
+  "verified_flows": [
+    "BUG FIX (primary): Arrow keys rotate camera yaw (Left/Right) and pitch (Up/Down); scene composition changes dramatically; arrow keys no longer translate the player.",
+    "WASD movement regression: hold KeyW 2s → position visibly advances toward bench.",
+    "PBR textures: dl.polyhaven.org returns 200 for all 4 URLs (grass, dirt, wood, bark); no CORS/pageerrors; bench slats and path visibly textured.",
+    "Welcome screen regression: welcome-screen, enter-vr-button, enter-desktop-button render.",
+    "Desktop mode entry: park-experience mounts, canvas renders, HUD 'desktop-hud-controls' contains 'frecce per ruotare'.",
+    "VR fallback (headless): clicking enter-vr-button triggers requestSession failure; vr-error-banner appears with exact Italian text and park-experience remains mounted in desktop mode.",
+    "No uncaught pageerrors during any of the above flows (0/0)."
+  ],
+  "failed_flows": [
+    "Sit-on-bench via KeyE: fails because ball proximity wins nearestInteractable → E picks up ball instead of sitting."
+  ],
+  "rca of the issue": "Root cause of sit regression: The nearestInteractable resolution in /app/frontend/src/components/park/controls/DesktopPlayer.jsx (lines 124-142) picks the object with the smallest distance under 5m across bench/lamp/radio/ball with no priority weighting. When the player walks straight toward the bench, the ball (which sits between the spawn and the bench) is closer than the bench, so nearestRef.current becomes 'ball'. ParkExperience's KeyE handler (lines 129-140) checks 'ball' before 'bench', so it fires pickupBall(). Meanwhile the HUD's sit-prompt uses a separate boolean 'nearBench' (proximity <3.2m) that ignores what the nearest ITEM is, so the UI misleadingly shows the sit affordance. Fix: add a bench priority when |camera - bench.position| < ~2.0m OR check nearBench in the KeyE handler before the ball branch."
+}

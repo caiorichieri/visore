@@ -30,9 +30,7 @@ export default function HUD({
           <span className="pk-key">A</span>
           <span className="pk-key">S</span>
           <span className="pk-key">D</span>
-          <span style={{ opacity: 0.75, marginLeft: 8 }}>
-            per muoverti · <span className="pk-key">Esc</span> per liberare il mouse
-          </span>
+          <span style={{ opacity: 0.75, marginLeft: 8 }}>muoviti · frecce per ruotare · <span className="pk-key">Esc</span> per liberare il mouse</span>
         </div>
       )}
 
