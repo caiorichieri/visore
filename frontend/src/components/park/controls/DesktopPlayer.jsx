@@ -32,29 +32,23 @@ export default function DesktopPlayer({ bench, sitting, onNearBench, onSelectBen
   }, [camera, bench]);
 
   // Click handler: raycasts against the bench (from screen center when pointer
-  // locked, otherwise from actual mouse position). Also acts as a lenient "sit"
-  // trigger when the player is standing right next to the bench.
+  // locked, otherwise from actual mouse position). Requires pointer lock so the
+  // very first click (used to acquire lock) doesn't accidentally trigger sit.
   useEffect(() => {
     const onClick = (e) => {
-      // If player is near the bench, treat any canvas click as a sit intent.
+      if (!document.pointerLockElement) return;
+      if (!benchTarget?.current) return;
+
+      // If player is standing very close, honour the click regardless of aim.
       const dx = camera.position.x - bench.position.x;
       const dz = camera.position.z - bench.position.z;
-      const distance = Math.sqrt(dx * dx + dz * dz);
-      if (distance < 2.9) {
+      if (Math.sqrt(dx * dx + dz * dz) < 2.9) {
         onSelectBench?.();
         return;
       }
 
-      if (!benchTarget?.current) return;
-      let ndc = { x: 0, y: 0 };
-      if (!document.pointerLockElement) {
-        const rect = gl.domElement.getBoundingClientRect();
-        ndc = {
-          x: ((e.clientX - rect.left) / rect.width) * 2 - 1,
-          y: -(((e.clientY - rect.top) / rect.height) * 2 - 1),
-        };
-      }
-      raycaster.current.setFromCamera(ndc, camera);
+      // Otherwise raycast against the bench from screen center.
+      raycaster.current.setFromCamera({ x: 0, y: 0 }, camera);
       const hits = raycaster.current.intersectObject(benchTarget.current, true);
       if (hits.length > 0) onSelectBench?.();
     };

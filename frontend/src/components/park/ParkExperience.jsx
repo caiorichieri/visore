@@ -22,11 +22,12 @@ export const BENCH = {
   seatCameraOffset: new THREE.Vector3(0, 1.15, 0.05),
 };
 
-export default function ParkExperience({ mode, xrStore, onExit }) {
+export default function ParkExperience({ mode, xrStore, onExit, autoEnterVR, onVRUnavailable }) {
   const [sitting, setSitting] = useState(false);
   const [hoveringBench, setHoveringBench] = useState(false);
   const [nearBench, setNearBench] = useState(false);
   const [locked, setLocked] = useState(false);
+  const [vrError, setVrError] = useState(null);
   const pointerLockRef = useRef(null);
   const xrOriginRef = useRef(null);
   const benchTargetRef = useRef(null);
@@ -38,6 +39,33 @@ export default function ParkExperience({ mode, xrStore, onExit }) {
     lastToggleAt.current = now;
     setSitting((s) => !s);
   }, []);
+
+  // Kick off VR session once the XR provider + Canvas are mounted.
+  useEffect(() => {
+    if (!autoEnterVR) return;
+    let cancelled = false;
+    const t = setTimeout(() => {
+      if (cancelled) return;
+      try {
+        const result = xrStore.enterVR();
+        if (result && typeof result.catch === "function") {
+          result.catch((err) => {
+            console.warn("VR not available:", err?.message || err);
+            setVrError(err?.message || "VR non disponibile su questo dispositivo.");
+            onVRUnavailable?.();
+          });
+        }
+      } catch (err) {
+        console.warn("VR init failed:", err);
+        setVrError(err?.message || "VR non disponibile.");
+        onVRUnavailable?.();
+      }
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [autoEnterVR, xrStore]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -176,6 +204,31 @@ export default function ParkExperience({ mode, xrStore, onExit }) {
       >
         Torna all&apos;ingresso
       </button>
+
+      {vrError && (
+        <div
+          data-testid="vr-error-banner"
+          style={{
+            position: "fixed",
+            top: 80,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 100,
+            padding: "10px 18px",
+            borderRadius: 999,
+            background: "rgba(120, 40, 30, 0.85)",
+            backdropFilter: "blur(14px)",
+            color: "#f5efe4",
+            fontSize: 13,
+            letterSpacing: "0.02em",
+            border: "1px solid rgba(245, 200, 190, 0.35)",
+            maxWidth: "80vw",
+            textAlign: "center",
+          }}
+        >
+          Nessun dispositivo VR rilevato — puoi esplorare comunque con mouse e tastiera.
+        </div>
+      )}
 
       <AmbientAudio />
     </div>

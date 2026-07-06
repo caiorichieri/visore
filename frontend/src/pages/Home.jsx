@@ -20,17 +20,7 @@ export default function Home() {
   );
 
   const enterDesktop = () => setMode("desktop");
-  const enterVR = () => {
-    setMode("vr");
-    // slight delay so the Canvas mounts before requesting session
-    setTimeout(() => {
-      try {
-        xrStore.enterVR();
-      } catch (e) {
-        console.warn("VR not available:", e);
-      }
-    }, 150);
-  };
+  const enterVR = () => setMode("vr");
   const exitPark = () => {
     try {
       if (document.pointerLockElement) document.exitPointerLock();
@@ -55,7 +45,13 @@ export default function Home() {
             </div>
           }
         >
-          <ParkExperience mode={mode} xrStore={xrStore} onExit={exitPark} />
+          <ParkExperience
+            mode={mode}
+            xrStore={xrStore}
+            onExit={exitPark}
+            autoEnterVR={mode === "vr"}
+            onVRUnavailable={() => setMode("desktop")}
+          />
         </Suspense>
       )}
     </div>
