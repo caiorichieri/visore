@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+body {
+    margin: 0;
+    font-family: 'Manrope', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: #0d1a12;
+    color: #f5efe4;
+    overscroll-behavior: none;
+}
+
+@layer base {
+    :root {
+        --background: 120 20% 8%;
+        --foreground: 40 34% 93%;
+        --card: 120 20% 8%;
+        --card-foreground: 40 34% 93%;
+        --popover: 120 20% 8%;
+        --popover-foreground: 40 34% 93%;
+        --primary: 90 30% 55%;
+        --primary-foreground: 120 20% 8%;
+        --secondary: 120 15% 15%;
+        --secondary-foreground: 40 34% 93%;
+        --muted: 120 15% 15%;
+        --muted-foreground: 40 15% 65%;
+        --accent: 34 60% 65%;
+        --accent-foreground: 120 20% 8%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 40 34% 93%;
+        --border: 120 15% 20%;
+        --input: 120 15% 20%;
+        --ring: 90 30% 55%;
+        --radius: 0.5rem;
+    }
+}
+
+@layer base {
+    * { @apply border-border; }
+    body { @apply bg-background text-foreground; }
+}
